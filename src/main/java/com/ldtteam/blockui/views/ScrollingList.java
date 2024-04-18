@@ -121,7 +121,7 @@ public class ScrollingList extends ScrollingView
     public void setDataProvider(final DataProvider p)
     {
         dataProvider = p;
-        refreshElementPanes();
+        refreshElementPanes(true);
     }
 
     /**
@@ -129,14 +129,24 @@ public class ScrollingList extends ScrollingView
      */
     public void refreshElementPanes()
     {
-        ((ScrollingListContainer) container).refreshElementPanes(dataProvider, maxHeight, childSpacing);
+        refreshElementPanes(true);
+    }
+
+    /**
+     * Use the data provider to update all the element panes.
+     *
+     * @param force should the list be forcefully updated.
+     */
+    public void refreshElementPanes(final boolean force)
+    {
+        ((ScrollingListContainer) container).refreshElementPanes(dataProvider, maxHeight, childSpacing, force);
     }
 
     @Override
     public void onUpdate()
     {
         super.onUpdate();
-        refreshElementPanes();
+        refreshElementPanes(false);
     }
 
     @Override
@@ -186,12 +196,32 @@ public class ScrollingList extends ScrollingView
         int getElementCount();
 
         /**
+         * Should all the children update again?
+         *
+         * @return true if the updates should be made
+         */
+        default boolean shouldUpdate()
+        {
+            return true;
+        }
+
+        /**
+         * Should the specific child update again?
+         *
+         * @return true if the updates should be made
+         */
+        default boolean shouldUpdate(final int index)
+        {
+            return true;
+        }
+
+        /**
          * Override this to pick a custom size for this element. Event contains the logic to modify the old size.
          *
          * @param index    the index of the row/list element.
          * @param modifier the object used to modify the size.
          */
-        default void modifyRowSize(int index, final RowSizeModifier modifier)
+        default void modifyRowSize(final int index, final RowSizeModifier modifier)
         {
             // No implementation by default
         }
