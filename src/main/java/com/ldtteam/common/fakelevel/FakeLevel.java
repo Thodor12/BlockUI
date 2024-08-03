@@ -806,6 +806,30 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
         // Noop
     }
 
+    @Override
+    public void setDayTimeFraction(final float v)
+    {
+        // Noop
+    }
+
+    @Override
+    public float getDayTimeFraction()
+    {
+        return 0;
+    }
+
+    @Override
+    public float getDayTimePerTick()
+    {
+        return 0;
+    }
+
+    @Override
+    public void setDayTimePerTick(final float v)
+    {
+        // Noop
+    }
+
     // ========================================
     // ======== SUPER IS FINE METHODS =========
     // ========================================

@@ -3,8 +3,10 @@ package com.ldtteam.common.config;
 import com.ldtteam.common.config.AbstractConfiguration.ConfigWatcher;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ConfigTracker;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.config.ModConfig.Type;
+import net.neoforged.fml.config.ModConfigs;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.ModConfigSpec;
@@ -94,10 +96,11 @@ public class Configurations<CLIENT extends AbstractConfiguration,
         }
 
         final Pair<T, ModConfigSpec> builtConfig = new ModConfigSpec.Builder().configure(factory);
-        final ModConfig modConfig = new ModConfig(type, builtConfig.getRight(), modContainer);
+        //modContainer.registerConfig(type, builtConfig.getRight());
+        // todo replace in the future with the return of registerConfig above
+        final ModConfig modConfig = ConfigTracker.INSTANCE.registerConfig(type, builtConfig.getRight(), modContainer);
         final T config = builtConfig.getLeft();
 
-        modContainer.addConfig(modConfig);
         modConfigs.add(modConfig);
         configs.add(config);
 
@@ -197,7 +200,7 @@ public class Configurations<CLIENT extends AbstractConfiguration,
         return valueSpecCache.computeIfAbsent(value, key -> {
             for (final ModConfig cfg : activeModConfigs)
             {
-                if (cfg.getSpec().get(value.getPath()) instanceof final ValueSpec valueSpec)
+                if (cfg.getSpec() instanceof ModConfigSpec modConfigSpec && modConfigSpec.getSpec() instanceof final ValueSpec valueSpec)
                 {
                     return Optional.of(valueSpec);
                 }

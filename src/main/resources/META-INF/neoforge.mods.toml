@@ -5,7 +5,7 @@ issueTrackerURL="https://github.com/ldtteam/BlockUI/issues/new/choose"
 
 [[mods]]
 modId="blockui"
-version="${version}"
+version="${file.jarVersion}" #mandatory
 displayName="UI Library Mod"
 credits="LDT Team"
 authors="LDT Team"
