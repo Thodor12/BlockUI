@@ -31,6 +31,6 @@ public class ClientLifecycleSubscriber
     public static void onModMismatch(final ModMismatchEvent event)
     {
         // there are no world data and rest is mod compat anyway
-        event.markResolved(BlockUI.MOD_ID);
+        event.getVersionDifference(BlockUI.MOD_ID).ifPresent(id -> event.markResolved(BlockUI.MOD_ID));
     }
 }
