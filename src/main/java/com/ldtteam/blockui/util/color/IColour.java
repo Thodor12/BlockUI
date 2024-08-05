@@ -67,7 +67,7 @@ public interface IColour
     }
 
     /**
-     * @see BufferBuilder#color(int, int, int, int)
+     * @see BufferBuilder#setColor(int, int, int, int)
      */
     default void writeIntoBuffer(final BufferBuilder buffer)
     {

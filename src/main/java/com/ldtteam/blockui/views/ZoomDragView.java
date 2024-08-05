@@ -397,7 +397,7 @@ public class ZoomDragView extends View
 
     /**
      * Automatically clamped between minScale and maxScale.
-     * @see #scrollInput(double, double, double) for zooming at position
+     * @see #scrollInput(double, double, double, double) for zooming at position
      */
     public void setScaleRaw(final double scale)
     {

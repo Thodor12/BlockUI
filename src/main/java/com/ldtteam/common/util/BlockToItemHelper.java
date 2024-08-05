@@ -47,7 +47,7 @@ public class BlockToItemHelper
      * Mostly for use in UI where you dont have level instance (eg. player selects block, from xml, but not when displaying real world
      * info - see {@link BlockStateRenderingData#of(Level, BlockPos, Player)}). NOT thread safe!
      * 
-     * @return result of player middle-mouse-button click with more sensible defaults (liquids -> buckets, fire -> flint&steel), might
+     * @return result of player middle-mouse-button click with more sensible defaults (liquids -> buckets, fire -> flint+steel), might
      *         be {@link ItemStack#isEmpty()} in case of error
      */
     public static ItemStack getItemStack(final BlockState blockState, final BlockEntity blockEntity, final Player player)
