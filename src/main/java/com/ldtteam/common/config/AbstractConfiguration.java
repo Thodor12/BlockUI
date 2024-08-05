@@ -11,6 +11,7 @@ import net.neoforged.neoforge.common.ModConfigSpec.DoubleValue;
 import net.neoforged.neoforge.common.ModConfigSpec.EnumValue;
 import net.neoforged.neoforge.common.ModConfigSpec.IntValue;
 import net.neoforged.neoforge.common.ModConfigSpec.LongValue;
+import net.neoforged.neoforge.common.ModConfigSpec.RestartType;
 import net.neoforged.neoforge.common.util.LogicalSidedProvider;
 import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AbstractConfiguration
@@ -29,7 +31,7 @@ public abstract class AbstractConfiguration
     private final Builder builder;
     private final String modId;
 
-    private boolean nextDefineWorldRestart = false;
+    private RestartType nextRestartType = RestartType.NONE;
 
     protected AbstractConfiguration(final Builder builder, final String modId)
     {
@@ -39,7 +41,7 @@ public abstract class AbstractConfiguration
 
     protected void createCategory(final String key)
     {
-        if (nextDefineWorldRestart)
+        if (nextRestartType != RestartType.NONE)
         {
             throw new IllegalStateException("Categories cannot have worldRestart flag!");
         }
@@ -72,11 +74,13 @@ public abstract class AbstractConfiguration
      */
     private Builder buildBase(final String key, @Nullable final String defaultDesc)
     {
-        if (nextDefineWorldRestart)
+        switch (nextRestartType)
         {
-            nextDefineWorldRestart = false;
-            builder.worldRestart();
+            case WORLD -> builder.worldRestart();
+            case GAME -> builder.gameRestart();
+            default -> {}
         }
+        nextRestartType = RestartType.NONE;
 
         String comment = translate(commentTKey(key));
         if (defaultDesc != null && !defaultDesc.isBlank())
@@ -94,7 +98,17 @@ public abstract class AbstractConfiguration
 
     protected AbstractConfiguration requiresWorldRestart()
     {
-        nextDefineWorldRestart = true;
+        return requires(RestartType.WORLD);
+    }
+
+    protected AbstractConfiguration requiresGameRestart()
+    {
+        return requires(RestartType.GAME);
+    }
+
+    protected AbstractConfiguration requires(final RestartType restartType)
+    {
+        nextRestartType = restartType;
         return this;
     }
 
@@ -141,6 +155,11 @@ public abstract class AbstractConfiguration
             .defineInRange(key, defaultValue, min, max);
     }
 
+    /**
+     * @deprecated by neo, potentially forRemoval?
+     * @see #defineList(String, Supplier, Predicate, Object...)
+     */
+    @Deprecated(since = "1.21")
     protected <T> ConfigValue<List<? extends T>> defineList(final String key,
         final List<? extends T> defaultValue,
         final Predicate<Object> elementValidator)
@@ -148,11 +167,50 @@ public abstract class AbstractConfiguration
         return buildBase(key, null).defineList(key, defaultValue, elementValidator);
     }
 
+    protected <T> ConfigValue<List<? extends T>> defineList(final String key,
+        final Supplier<T> newUiInstance,
+        final Predicate<Object> elementValidator,
+        final List<? extends T> defaultValue)
+    {
+        return buildBase(key, null).defineList(key, defaultValue, newUiInstance, elementValidator);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T> ConfigValue<List<? extends T>> defineList(final String key,
+        final Supplier<T> newUiInstance,
+        final Predicate<Object> elementValidator,
+        final T... values)
+    {
+        return buildBase(key, null).defineList(key, () -> List.of(values), newUiInstance, elementValidator);
+    }
+
+    /**
+     * @deprecated by neo, potentially forRemoval?
+     * @see #defineListAllowEmpty(String, Supplier, Predicate, Object...)
+     */
+    @Deprecated(since = "1.21")
     protected <T> ConfigValue<List<? extends T>> defineListAllowEmpty(final String key,
         final List<? extends T> defaultValue,
         final Predicate<Object> elementValidator)
     {
         return buildBase(key, null).defineListAllowEmpty(key, defaultValue, elementValidator);
+    }
+
+    protected <T> ConfigValue<List<? extends T>> defineListAllowEmpty(final String key,
+        final Supplier<T> newUiInstance,
+        final Predicate<Object> elementValidator,
+        final List<? extends T> defaultValue)
+    {
+        return buildBase(key, null).defineListAllowEmpty(key, defaultValue, newUiInstance, elementValidator);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T> ConfigValue<List<? extends T>> defineListAllowEmpty(final String key,
+        final Supplier<T> newUiInstance,
+        final Predicate<Object> elementValidator,
+        final T... values)
+    {
+        return buildBase(key, null).defineListAllowEmpty(key, () -> List.of(values), newUiInstance, elementValidator);
     }
 
     protected <V extends Enum<V>> EnumValue<V> defineEnum(final String key, final V defaultValue)

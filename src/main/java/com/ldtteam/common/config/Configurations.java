@@ -3,6 +3,7 @@ package com.ldtteam.common.config;
 import com.ldtteam.common.config.AbstractConfiguration.ConfigWatcher;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ConfigTracker;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.config.ModConfig.Type;
 import net.neoforged.fml.event.config.ModConfigEvent;
@@ -13,9 +14,7 @@ import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 import net.neoforged.neoforge.common.ModConfigSpec.ValueSpec;
 import org.apache.commons.lang3.tuple.Pair;
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -44,7 +43,6 @@ public class Configurations<CLIENT extends AbstractConfiguration,
     private final ModConfig common;
     private final COMMON commonConfig;
 
-    private final ModConfig[] activeModConfigs;
     private final AbstractConfiguration[] activeConfigs;
 
     /**
@@ -58,22 +56,20 @@ public class Configurations<CLIENT extends AbstractConfiguration,
         final Function<Builder, SERVER> serverFactory,
         final Function<Builder, COMMON> commonFactory)
     {
-        final List<ModConfig> modConfigs = new ArrayList<>();
         final List<AbstractConfiguration> configs = new ArrayList<>();
 
-        final Pair<CLIENT, ModConfig> cli = createConfig(clientFactory, Type.CLIENT, modContainer, modConfigs, configs);
+        final Pair<CLIENT, ModConfig> cli = createConfig(clientFactory, Type.CLIENT, modContainer, configs);
         client = cli.getRight();
         clientConfig = cli.getLeft();
 
-        final Pair<SERVER, ModConfig> ser = createConfig(serverFactory, Type.SERVER, modContainer, modConfigs, configs);
+        final Pair<SERVER, ModConfig> ser = createConfig(serverFactory, Type.SERVER, modContainer, configs);
         server = ser.getRight();
         serverConfig = ser.getLeft();
 
-        final Pair<COMMON, ModConfig> com = createConfig(commonFactory, Type.COMMON, modContainer, modConfigs, configs);
+        final Pair<COMMON, ModConfig> com = createConfig(commonFactory, Type.COMMON, modContainer, configs);
         common = com.getRight();
         commonConfig = com.getLeft();
 
-        activeModConfigs = modConfigs.toArray(ModConfig[]::new);
         activeConfigs = configs.toArray(AbstractConfiguration[]::new);
 
         // register events for watchers
@@ -84,7 +80,6 @@ public class Configurations<CLIENT extends AbstractConfiguration,
     private <T extends AbstractConfiguration> Pair<T, ModConfig> createConfig(final Function<Builder, T> factory,
         final Type type,
         final ModContainer modContainer,
-        final List<ModConfig> modConfigs,
         final List<AbstractConfiguration> configs)
     {
         // dont create client classes on server to avoid class loading issues
@@ -94,11 +89,11 @@ public class Configurations<CLIENT extends AbstractConfiguration,
         }
 
         final Pair<T, ModConfigSpec> builtConfig = new ModConfigSpec.Builder().configure(factory);
-        final ModConfig modConfig = new ModConfig(type, builtConfig.getRight(), modContainer);
+        // modContainer.registerConfig(type, builtConfig.getRight());
+        // TODO: replace in the future with the return of registerConfig above
+        final ModConfig modConfig = ConfigTracker.INSTANCE.registerConfig(type, builtConfig.getRight(), modContainer);
         final T config = builtConfig.getLeft();
 
-        modContainer.addConfig(modConfig);
-        modConfigs.add(modConfig);
         configs.add(config);
 
         return Pair.of(config, modConfig);
@@ -186,29 +181,13 @@ public class Configurations<CLIENT extends AbstractConfiguration,
         }
     }
 
-    private final Map<ConfigValue<?>, Optional<ValueSpec>> valueSpecCache = new IdentityHashMap<>();
-
     /**
      * @param  value config value from this mod
      * @return       value spec, crashes in dev if not found
      */
+    @Deprecated(forRemoval = true, since = "1.21")
     public Optional<ValueSpec> getSpecFromValue(final ConfigValue<?> value)
     {
-        return valueSpecCache.computeIfAbsent(value, key -> {
-            for (final ModConfig cfg : activeModConfigs)
-            {
-                if (cfg.getSpec().get(value.getPath()) instanceof final ValueSpec valueSpec)
-                {
-                    return Optional.of(valueSpec);
-                }
-            }
-
-            if (!FMLEnvironment.production)
-            {
-                throw new RuntimeException("Cannot find backing ValueSpec for: " + value.getPath());
-            }
-
-            return Optional.empty();
-        });
+        return Optional.of(value.getSpec());
     }
 }

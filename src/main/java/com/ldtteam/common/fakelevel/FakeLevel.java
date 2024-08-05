@@ -486,6 +486,18 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
         return realLevel().potionBrewing();
     }
 
+    @Override
+    public float getDayTimeFraction()
+    {
+        return realLevel().getDayTimeFraction();
+    }
+
+    @Override
+    public float getDayTimePerTick()
+    {
+        return realLevel().getDayTimePerTick();
+    }
+
     // ========================================
     // ======= NOOP UNSAFE NULL METHODS =======
     // ========================================
@@ -802,6 +814,18 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
 
     @Override
     public void invalidateCapabilities(ChunkPos pos)
+    {
+        // Noop
+    }
+
+    @Override
+    public void setDayTimeFraction(final float v)
+    {
+        // Noop
+    }
+
+    @Override
+    public void setDayTimePerTick(final float v)
     {
         // Noop
     }
