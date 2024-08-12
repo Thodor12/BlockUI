@@ -159,6 +159,7 @@ public class Configurations<CLIENT extends AbstractConfiguration,
     public <T> void set(final ConfigValue<T> configValue, final T value)
     {
         configValue.set(value);
+        configValue.save();
         onConfigValueEdit(configValue);
     }
 
