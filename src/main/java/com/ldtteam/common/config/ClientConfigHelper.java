@@ -9,7 +9,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
  */
 public class ClientConfigHelper
 {
-    static registerClient(final ModContainer modContainer)
+    static void registerClient(final ModContainer modContainer)
     {
         modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
