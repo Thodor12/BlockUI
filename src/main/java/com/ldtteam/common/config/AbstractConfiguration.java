@@ -14,6 +14,7 @@ import net.neoforged.neoforge.common.ModConfigSpec.LongValue;
 import net.neoforged.neoforge.common.ModConfigSpec.RestartType;
 import net.neoforged.neoforge.common.util.LogicalSidedProvider;
 import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -93,7 +94,8 @@ public abstract class AbstractConfiguration
 
     private static String translate(final String key, final Object... args)
     {
-        return LanguageHandler.translateKey(key).formatted(args);
+        final String translated = LanguageHandler.translateKey(key);
+        return args.length == 0 ? translated : translated.formatted(args);
     }
 
     protected AbstractConfiguration requiresWorldRestart()
