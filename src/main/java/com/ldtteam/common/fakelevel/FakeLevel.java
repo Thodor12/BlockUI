@@ -126,8 +126,15 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
         final boolean overrideBeLevel)
     {
         // we have to pass null in ctor, so realLevel can be used
-        super(new FakeLevelData(realLevel.getLevelData(),
-            lightProvider), null, realLevel.registryAccess(), realLevel.dimensionTypeRegistration(), null, true, false, 0, 0);
+        super(new FakeLevelData(realLevel.getLevelData(), lightProvider),
+            realLevel.dimension(),
+            realLevel.registryAccess(),
+            realLevel.dimensionTypeRegistration(),
+            realLevel.getProfilerSupplier(),
+            true,
+            false,
+            0,
+            0);
         this.levelSource = levelSource;
         this.lightProvider = lightProvider;
         this.realLevel = realLevel;
@@ -214,53 +221,54 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
     // ========================================
     // ======= CTOR REAL LEVEL REDIRECTS ======
     // ========================================
+    // Note: must have null check because super ctor
 
     @Override
     public ResourceKey<Level> dimension()
     {
-        return realLevel().dimension();
+        return realLevel() != null ? realLevel().dimension() : super.dimension();
     }
 
     @Override
     public RegistryAccess registryAccess()
     {
-        return realLevel().registryAccess();
+        return realLevel() != null ? realLevel().registryAccess() : super.registryAccess();
     }
 
     @Override
     public DamageSources damageSources()
     {
-        return realLevel().damageSources();
+        return realLevel() != null ? realLevel().damageSources() : super.damageSources();
     }
 
     @Override
     public ProfilerFiller getProfiler()
     {
-        return realLevel().getProfiler();
+        return realLevel() != null ? realLevel().getProfiler() : super.getProfiler();
     }
 
     @Override
     public Supplier<ProfilerFiller> getProfilerSupplier()
     {
-        return realLevel().getProfilerSupplier();
+        return realLevel() != null ? realLevel().getProfilerSupplier() : super.getProfilerSupplier();
     }
 
     @Override
     public DimensionType dimensionType()
     {
-        return realLevel().dimensionType();
+        return realLevel() != null ? realLevel().dimensionType() : super.dimensionType();
     }
 
     @Override
     public Holder<DimensionType> dimensionTypeRegistration()
     {
-        return realLevel().dimensionTypeRegistration();
+        return realLevel() != null ? realLevel().dimensionTypeRegistration() : super.dimensionTypeRegistration();
     }
 
     @Override
     public WorldBorder getWorldBorder()
     {
-        return realLevel().getWorldBorder();
+        return realLevel() != null ? realLevel().getWorldBorder() : super.getWorldBorder();
     }
 
     // ========================================

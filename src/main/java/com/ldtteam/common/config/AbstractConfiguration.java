@@ -14,7 +14,6 @@ import net.neoforged.neoforge.common.ModConfigSpec.LongValue;
 import net.neoforged.neoforge.common.ModConfigSpec.RestartType;
 import net.neoforged.neoforge.common.util.LogicalSidedProvider;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
