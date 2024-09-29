@@ -109,6 +109,10 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
      */
     protected BlockPos worldPos = BlockPos.ZERO;
 
+    // chunk cache
+    int lastX, lastZ;
+    ChunkAccess lastChunk = null;
+
     /**
      * @param levelSource     data source, also try to set block entities/entities collections
      * @param lightProvider   light source
@@ -131,7 +135,7 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
             realLevel.registryAccess(),
             realLevel.dimensionTypeRegistration(),
             realLevel.getProfilerSupplier(),
-            true,
+            realLevel.isClientSide(),
             false,
             0,
             0);
@@ -156,6 +160,11 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
         if (Objects.equals(this.realLevel, realLevel))
         {
             return;
+        }
+
+        if (realLevel != null && realLevel.isClientSide != this.isClientSide)
+        {
+            throw new IllegalArgumentException("Received wrong sided realLevel - fakeLevel.isClientSide = " + this.isClientSide);
         }
 
         this.realLevel = realLevel;
@@ -201,7 +210,7 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
 
     /**
      * For better block entity handling in chunk methods. If set then {@link IFakeLevelBlockGetter#getBlockEntity(BlockPos)
-     * levelSource.getBlockEntity(BlockPos)} is not used
+     * levelSource.getBlockEntity(BlockPos)} is not used. Reset with empty collection
      * 
      * @param blockEntities all block entities, should be data equivalent to levelSource
      */
@@ -211,11 +220,11 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
     }
 
     /**
-     * @param entities all entities, their level should be this fake level instance
+     * @param entities all entities, their level should be this fake level instance. Reset with empty collection
      */
     public void setEntities(final Collection<? extends Entity> entities)
     {
-        levelEntityGetter = FakeLevelEntityGetterAdapter.ofEntities(entities);
+        levelEntityGetter = entities.isEmpty() ? FakeLevelEntityGetterAdapter.EMPTY : FakeLevelEntityGetterAdapter.ofEntities(entities);
     }
 
     // ========================================
@@ -296,6 +305,10 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
     @Override
     public ChunkAccess getChunk(int x, int z, ChunkStatus requiredStatus, boolean nonnull)
     {
+        if (lastX == x && lastZ == z && lastChunk != null)
+        {
+            return lastChunk;
+        }
         return nonnull || hasChunk(x, z) ? new FakeChunk(this, x, z) : null;
     }
 
@@ -368,7 +381,7 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
     @Override
     public CrashReportCategory fillReportDetails(CrashReport report)
     {
-        CrashReportCategory crashreportcategory = report.addCategory("Structurize fake level");
+        CrashReportCategory crashreportcategory = report.addCategory("BlockUI fake level");
         levelSource.describeSelfInCrashReport(crashreportcategory);
         return crashreportcategory;
     }

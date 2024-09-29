@@ -1,9 +1,7 @@
 package com.ldtteam.common.util;
 
 import com.ldtteam.blockui.mod.item.BlockStateRenderingData;
-import com.ldtteam.common.fakelevel.FakeLevel;
-import com.ldtteam.common.fakelevel.IFakeLevelBlockGetter.SingleBlockFakeLevelGetter;
-import com.ldtteam.common.fakelevel.IFakeLevelLightProvider;
+import com.ldtteam.common.fakelevel.SingleBlockFakeLevel.SidedSingleBlockFakeLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -31,21 +29,12 @@ import org.jetbrains.annotations.Nullable;
  */
 public class BlockToItemHelper
 {
-    private static final HitResult ZERO_POS_HIT_RESULT = new BlockHitResult(Vec3.atCenterOf(BlockPos.ZERO), Direction.NORTH, BlockPos.ZERO, true);
-    private static FakeLevel<SingleBlockFakeLevelGetter> fakeLevel;
-
-    public static void releaseFakeLevelInstance()
-    {
-        if (fakeLevel != null)
-        {
-            fakeLevel.setRealLevel(null);
-            fakeLevel = null;
-        }
-    }
+    public static final HitResult ZERO_POS_HIT_RESULT = new BlockHitResult(Vec3.atCenterOf(BlockPos.ZERO), Direction.NORTH, BlockPos.ZERO, true);
+    private static final SidedSingleBlockFakeLevel fakeLevel = new SidedSingleBlockFakeLevel();
 
     /**
      * Mostly for use in UI where you dont have level instance (eg. player selects block, from xml, but not when displaying real world
-     * info - see {@link BlockStateRenderingData#of(Level, BlockPos, Player)}). NOT thread safe!
+     * info - see {@link BlockStateRenderingData#of(Level, BlockPos, Player)}).
      * 
      * @return result of player middle-mouse-button click with more sensible defaults (liquids -> buckets, fire -> flint+steel), might
      *         be {@link ItemStack#isEmpty()} in case of error
@@ -58,16 +47,12 @@ public class BlockToItemHelper
             return ItemStack.EMPTY;
         }
 
-        if (fakeLevel == null)
-        {
-            fakeLevel = new FakeLevel<>(new SingleBlockFakeLevelGetter(), IFakeLevelLightProvider.USE_CLIENT_LEVEL, player.level(), null, true);
-        }
+        // client vs server concurrency - we dont care if create two instances, the other should just disappear
 
-        fakeLevel.setRealLevel(player.level());
-        fakeLevel.getLevelSource().blockState = blockState;
-        fakeLevel.getLevelSource().blockEntity = blockEntity;
-        
-        return getItemStackUsingPlayerPick(fakeLevel, BlockPos.ZERO, player, ZERO_POS_HIT_RESULT);
+        return fakeLevel.get(player.level()).useFakeLevelContext(blockState,
+            blockEntity,
+            player.level(),
+            level -> getItemStackUsingPlayerPick(level, BlockPos.ZERO, player, ZERO_POS_HIT_RESULT));
     }
 
     /**
@@ -104,7 +89,7 @@ public class BlockToItemHelper
         }
 
         final BlockState blockState = level.getBlockState(pos);
-        ItemStack result = blockState.getCloneItemStack(hitResult, fakeLevel, pos, player);
+        ItemStack result = blockState.getCloneItemStack(hitResult, level, pos, player);
 
         if (result.isEmpty())
         {
@@ -118,7 +103,7 @@ public class BlockToItemHelper
      * @param blockState source for item
      * @return vanilla result with few fixes
      */
-    private static Item getItem(final BlockState blockState)
+    public static Item getItem(final BlockState blockState)
     {
         final Block block = blockState.getBlock();
         if (block instanceof final LiquidBlock liquid)
