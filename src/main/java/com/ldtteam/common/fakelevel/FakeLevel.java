@@ -130,7 +130,7 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
         final boolean overrideBeLevel)
     {
         // we have to pass null in ctor, so realLevel can be used
-        super(new FakeLevelData(realLevel.getLevelData(), lightProvider),
+        super(new FakeLevelData(realLevel::getLevelData, lightProvider),
             realLevel.dimension(),
             realLevel.registryAccess(),
             realLevel.dimensionTypeRegistration(),
@@ -149,6 +149,7 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
         this.lightEngine = new FakeLevelLightEngine(this);
 
         setRealLevel(realLevel); // intentionally due to init
+        ((FakeLevelData) getLevelData()).vanillaLevelData = () -> realLevel().getLevelData();
     }
 
     // ========================================
@@ -168,7 +169,6 @@ public class FakeLevel<SOURCE extends IFakeLevelBlockGetter> extends Level
         }
 
         this.realLevel = realLevel;
-        ((FakeLevelData) this.getLevelData()).vanillaLevelData = realLevel == null ? null : realLevel.getLevelData();
     }
 
     public Level realLevel()

@@ -5,16 +5,17 @@ import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.storage.WritableLevelData;
+import java.util.function.Supplier;
 
 /**
  * Porting: class is relatively small, just check super class manually (all of missing methods are/were just aliases)
  */
 public class FakeLevelData implements WritableLevelData
 {
-    protected LevelData vanillaLevelData;
+    protected Supplier<LevelData> vanillaLevelData;
     protected final IFakeLevelLightProvider lightProvider;
 
-    protected FakeLevelData(final LevelData vanillaLevelData, final IFakeLevelLightProvider lightProvider)
+    protected FakeLevelData(final Supplier<LevelData> vanillaLevelData, final IFakeLevelLightProvider lightProvider)
     {
         this.vanillaLevelData = vanillaLevelData;
         this.lightProvider = lightProvider;
@@ -35,13 +36,13 @@ public class FakeLevelData implements WritableLevelData
     @Override
     public long getGameTime()
     {
-        return vanillaLevelData.getGameTime();
+        return vanillaLevelData.get().getGameTime();
     }
 
     @Override
     public long getDayTime()
     {
-        return lightProvider.forceOwnLightLevel() ? lightProvider.getDayTime() : vanillaLevelData.getDayTime();
+        return lightProvider.forceOwnLightLevel() ? lightProvider.getDayTime() : vanillaLevelData.get().getDayTime();
     }
 
     @Override
@@ -71,7 +72,7 @@ public class FakeLevelData implements WritableLevelData
     @Override
     public GameRules getGameRules()
     {
-        return vanillaLevelData.getGameRules();
+        return vanillaLevelData.get().getGameRules();
     }
 
     @Override
