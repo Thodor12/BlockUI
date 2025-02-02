@@ -492,10 +492,9 @@ public abstract class AbstractTextElement extends Pane
         return isTextEmpty() ? null : text.get(0);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public void setTextOld(final List<Component> text)
     {
-        setText((List<MutableComponent>)((List) text));
+        setText(text.stream().map(c -> c instanceof MutableComponent m ? m : c.copy()).toList());
     }
 
     public void setText(final List<MutableComponent> text)
@@ -506,7 +505,7 @@ public abstract class AbstractTextElement extends Pane
 
     public void setText(final Component text)
     {
-        setText((MutableComponent) text);
+        setText(text instanceof MutableComponent m ? m : text.copy());
     }
 
     public void setText(final MutableComponent text)
